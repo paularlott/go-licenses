@@ -111,8 +111,6 @@ func saveMain(_ *cobra.Command, args []string) error {
 					return err
 				}
 			} else {
-				fmt.Printf("COPY: ", lib.LicenseFile);
-
 				// Just copy the license and copyright notice.
 				if err := copyNotices(lib.LicenseFile, libSaveDir); err != nil {
 					return err
