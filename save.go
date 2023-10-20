@@ -45,6 +45,8 @@ var (
 	// overwriteSavePath controls behaviour when the directory indicated by savePath already exists.
 	// If true, the directory will be replaced. If false, the command will fail.
 	overwriteSavePath bool
+
+	skipCopySource bool
 )
 
 func init() {
@@ -57,6 +59,7 @@ func init() {
 	}
 
 	saveCmd.Flags().BoolVar(&overwriteSavePath, "force", false, "Delete the destination directory if it already exists.")
+	saveCmd.Flags().BoolVar(&skipCopySource, "skip_copy_source", false, "Skip copying the source code for libraries with restrictive licenses.")
 
 	rootCmd.AddCommand(saveCmd)
 }
@@ -102,9 +105,18 @@ func saveMain(_ *cobra.Command, args []string) error {
 		switch restrictiveness {
 		case licenses.RestrictionsShareCode:
 			// Copy the entire source directory for the library.
-			libDir := filepath.Dir(lib.LicenseFile)
-			if err := copySrc(libDir, libSaveDir); err != nil {
-				return err
+			if(!skipCopySource) {
+				libDir := filepath.Dir(lib.LicenseFile)
+				if err := copySrc(libDir, libSaveDir); err != nil {
+					return err
+				}
+			} else {
+				fmt.Printf("COPY: ", lib.LicenseFile);
+
+				// Just copy the license and copyright notice.
+				if err := copyNotices(lib.LicenseFile, libSaveDir); err != nil {
+					return err
+				}
 			}
 		case licenses.RestrictionsShareLicense:
 			// Just copy the license and copyright notice.
